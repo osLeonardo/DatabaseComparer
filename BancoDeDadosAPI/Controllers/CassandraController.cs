@@ -1,5 +1,8 @@
-using BancoDeDadosAPI.Services;
+using BancoDeDadosAPI.Interfaces;
+using BancoDeDadosAPI.Models;
+using Cassandra;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace BancoDeDadosAPI.Controllers
 {
@@ -7,35 +10,91 @@ namespace BancoDeDadosAPI.Controllers
     [ApiController]
     public class CassandraController : ControllerBase
     {
-        private readonly CassandraService _cassandraService;
+        private readonly ICassandraService _cassandraService;
 
-        public CassandraController(CassandraService cassandraService)
+        public CassandraController(ICassandraService cassandraService)
         {
             _cassandraService = cassandraService;
         }
 
         [HttpGet]
-        public ActionResult Get()
+        public async Task<ActionResult<List<DataModel>>> List()
         {
-            return Ok(_cassandraService.Get());
+            var rows = await _cassandraService.ListAsync();
+            if(rows == null)
+            {
+                return NotFound();
+            }
+
+            List<DataModel> resultList = rows.Select(row => new DataModel()
+            {
+                Id = row.GetValue<int>("id"),
+                Text = row.GetValue<string>("texto"),
+                Number = row.GetValue<int>("numero"),
+                Decimal = row.GetValue<float>("num_decimal"),
+                Date = row.GetValue<DateTime>("data_completa")
+            }).ToList();
+
+            return Ok(resultList);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<DataModel>> GetById([FromRoute] int id)
+        {
+            var rows = await _cassandraService.GetByIdAsync(id);
+            if (rows == null)
+            {
+                return NotFound();
+            }
+
+             var row = rows.SingleOrDefault();
+
+            DataModel result = new DataModel()
+            {
+                Id = row.GetValue<int>("id"),
+                Text = row.GetValue<string>("texto"),
+                Number = row.GetValue<int>("numero"),
+                Decimal = row.GetValue<float>("num_decimal"),
+                Date = row.GetValue<DateTime>("data_completa")
+            };
+
+            return Ok(result);
         }
 
         [HttpPost]
-        public ActionResult Post()
+        public async Task<ActionResult<DataModel>> Create([FromBody] DataModel data)
         {
-            return Ok(_cassandraService.Post());
+            
+            if (data == null || string.IsNullOrEmpty(data.Text))
+            {
+                return BadRequest();
+            }
+
+            await _cassandraService.PostAsync(data);
+
+            return Ok(data);
         }
 
         [HttpPut]
-        public ActionResult Put()
+        public async Task<ActionResult<DataModel>> Update([FromBody] DataModel data)
         {
-            return Ok(_cassandraService.Put());
+
+            if (data == null || string.IsNullOrEmpty(data.Text))
+            {
+                return BadRequest();
+            }
+
+            await _cassandraService.UpdateAsync(data);
+
+            return Ok(data);
         }
 
-        [HttpDelete]
-        public ActionResult Delete()
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> Delete([FromRoute] int id)
         {
-            return Ok(_cassandraService.Delete());
+            await _cassandraService.DeleteAsync(id);
+
+            return Ok();
         }
     }
 }
