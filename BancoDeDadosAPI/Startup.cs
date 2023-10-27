@@ -1,4 +1,5 @@
-﻿using BancoDeDadosAPI.Services;
+﻿using BancoDeDadosAPI.Interfaces;
+using BancoDeDadosAPI.Services;
 using Microsoft.OpenApi.Models;
 
 namespace BancoDeDadosAPI
@@ -15,7 +16,7 @@ namespace BancoDeDadosAPI
         public void ConfigureServices(IServiceCollection services)
         {
             // Add services for Cassandra and Neo4j
-            services.AddSingleton<CassandraService>();
+            services.AddSingleton<ICassandraService, CassandraService>();
             services.AddSingleton<Neo4jService>();
 
             services.AddControllers();
