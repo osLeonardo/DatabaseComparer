@@ -10,26 +10,20 @@ namespace BancoDeDadosAPI.Services
     {
         private readonly IDriver _driver;
 
-        public Neo4jService(string uri, string user, string password)
+        public Neo4jService()
         {
-            _driver = GraphDatabase.Driver(uri, AuthTokens.Basic(user, password));
+            _driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "neoadmin"));
+            _driver.AsyncSession(); 
         }
 
-        public async Task<IResultCursor> ListAsync()
+        public Task<IResultCursor> ListAsync()
         {
             IAsyncSession session = _driver.AsyncSession();
-            try
-            {
-                // Define your Cypher query to list nodes and relationships.
-                string cypherQuery = "MATCH (n)-[r]-(m) RETURN n, r, m";
+            // Define your Cypher query to list nodes and relationships.
+            string cypherQuery = "MATCH (n)-[r]-(m) RETURN n, r, m";
 
-                // Run the query and return the result cursor.
-                return await session.RunAsync(cypherQuery);
-            }
-            finally
-            {
-                await session.CloseAsync();
-            }
+            // Run the query and return the result cursor.
+            return session.RunAsync(cypherQuery);
         }
 
         public async Task<Neo4jModel> GetByIdAsync(string id)

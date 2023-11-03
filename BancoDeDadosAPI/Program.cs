@@ -1,4 +1,4 @@
-using BancoDeDadosAPI;
+/*using BancoDeDadosAPI;
 using Microsoft.Extensions.Configuration;
 using System;
 
@@ -27,9 +27,9 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+*/
 
-
-/*using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
 namespace BancoDeDadosAPI
@@ -48,4 +48,4 @@ namespace BancoDeDadosAPI
                     webBuilder.UseStartup<Startup>();
                 });
     }
-}*/
+}
