@@ -1,6 +1,7 @@
 ﻿using BancoDeDadosAPI.Interfaces;
 using BancoDeDadosAPI.Services;
 using Microsoft.OpenApi.Models;
+using Neo4j.Driver;
 
 namespace BancoDeDadosAPI
 {
@@ -16,8 +17,9 @@ namespace BancoDeDadosAPI
         public void ConfigureServices(IServiceCollection services)
         {
             // Add services for Cassandra and Neo4j
+            services.AddSingleton(GraphDatabase.Driver("neo4j://localhost:7687", AuthTokens.Basic("neo4j", "neoadmin")));
             services.AddSingleton<ICassandraService, CassandraService>();
-            services.AddSingleton<Neo4jService>();
+            services.AddSingleton<INeo4jService, Neo4jService>();
 
             services.AddControllers();
 

@@ -1,4 +1,5 @@
-﻿using BancoDeDadosAPI.Services;
+﻿using BancoDeDadosAPI.Models;
+using BancoDeDadosAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BancoDeDadosAPI.Controllers
@@ -15,27 +16,33 @@ namespace BancoDeDadosAPI.Controllers
         }
 
         [HttpGet]
-        public ActionResult Get()
+        public ActionResult List()
         {
-            return Ok(_neo4jService.Get());
+            return Ok(_neo4jService.ListAsync());
+        }
+
+        [HttpGet("{id:int}")]
+        public ActionResult GetById([FromRoute] string id)
+        {
+            return Ok(_neo4jService.GetByIdAsync(id));
         }
 
         [HttpPost]
-        public ActionResult Post()
+        public ActionResult Post(Neo4jModel data)
         {
-            return Ok(_neo4jService.Post());
+            return Ok(_neo4jService.PostAsync(data));
         }
 
         [HttpPut]
-        public ActionResult Put()
+        public ActionResult Put(Neo4jModel data)
         {
-            return Ok(_neo4jService.Put());
+            return Ok(_neo4jService.UpdateAsync(data));
         }
 
-        [HttpDelete]
-        public ActionResult Delete()
+        [HttpDelete("{id:int}")]
+        public ActionResult Delete(string id)
         {
-            return Ok(_neo4jService.Delete());
+            return Ok(_neo4jService.DeleteAsync(id));
         }
     }
 }

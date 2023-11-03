@@ -35,7 +35,7 @@ namespace BancoDeDadosAPI.Services
             return _session.ExecuteAsync(_psGet);
         }
 
-        public  Task<RowSet> GetByIdAsync(int id)
+        public Task<RowSet> GetByIdAsync(int id)
         {
             return _session.ExecuteAsync(_psGetById.Bind(id));
         }
