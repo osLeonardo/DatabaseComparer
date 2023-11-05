@@ -1,8 +1,6 @@
 ﻿using BancoDeDadosAPI.Interfaces;
 using BancoDeDadosAPI.Models;
 using Neo4j.Driver;
-using static System.Net.Mime.MediaTypeNames;
-using System;
 
 namespace BancoDeDadosAPI.Services
 {
@@ -13,56 +11,23 @@ namespace BancoDeDadosAPI.Services
         public Neo4jService()
         {
             _driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "neoadmin"));
-            _driver.AsyncSession(); 
         }
 
-        public Task<IResultCursor> ListAsync()
+        public Task ListAsync()
         {
-            IAsyncSession session = _driver.AsyncSession();
-            // Define your Cypher query to list nodes and relationships.
-            string cypherQuery = "MATCH (n)-[r]-(m) RETURN n, r, m";
-
-            // Run the query and return the result cursor.
-            return session.RunAsync(cypherQuery);
+            throw new System.NotImplementedException();
         }
 
-        public async Task<Neo4jModel> GetByIdAsync(string id)
+        public Task GetByIdAsync(int nodeId)
         {
-            using (var session = _driver.AsyncSession())
-            {
-                var query = "MATCH (n:Neo4jModel { Id: $id }) RETURN n";
-                var parameters = new { id };
-
-                var result = await session.ReadTransactionAsync(async tx =>
-                {
-                    var cursor = await tx.RunAsync(query, parameters);
-                    var record = await cursor.SingleAsync();
-
-                    return record?["n"].As<INode>();
-                });
-
-                if (result != null)
-                {
-                    return new Neo4jModel
-                    {
-                        Id = result["Id"].As<int>(),
-                        Text = result["Text"].As<string>(),
-                        Number = result["Number"].As<int>(),
-                        Decimal = result["Decimal"].As<float>(),
-                        Date = result["Date"].As<DateTime>()
-                    };
-                }
-
-                return null;
-            }
+            throw new System.NotImplementedException();
         }
 
-        public async Task PostAsync(Neo4jModel data)
+        public async Task CreateAsync(DataModel data)
         {
             using (var session = _driver.AsyncSession())
             {
-                var query = @"
-                CREATE (n:Neo4jModel { Id: $id, Text: $text, Number: $num, Decimal: $dec, Date: $date })";
+                var query = @"CREATE ({ Id: $id, Text: $text, Number: $num, Decimal: $dec, Date: datetime($date) })";
                 var parameters = new
                 {
                     id = data.Id,
@@ -79,13 +44,13 @@ namespace BancoDeDadosAPI.Services
             }
         }
 
-        public async Task UpdateAsync(Neo4jModel data)
+        public async Task UpdateAsync(DataModel data)
         {
             using (var session = _driver.AsyncSession())
             {
-                var query = @"
-                MATCH (n:Neo4jModel { Id: $id })
-                SET n.Text = $text, n.Number = $num, n.Decimal = $dec, n.Date = $date";
+                var query = @"MATCH (n)
+                              WHERE n.Id = $id
+                                SET n.Text = $text, n.Number = $num, n.Decimal = $dec, n.Date = datetime($date)";
                 var parameters = new
                 {
                     id = data.Id,
@@ -102,12 +67,15 @@ namespace BancoDeDadosAPI.Services
             }
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(int nodeId)
         {
             using (var session = _driver.AsyncSession())
             {
-                var query = "MATCH (n:Neo4jModel { Id: $id }) DELETE n";
-                var parameters = new { id };
+                var query = @"MATCH (n)
+                              WHERE n.Id = $id
+                             DELETE n";
+
+                var parameters = new { id = nodeId };
 
                 await session.WriteTransactionAsync(async tx =>
                 {

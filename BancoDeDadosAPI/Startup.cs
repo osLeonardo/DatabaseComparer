@@ -1,7 +1,6 @@
 ﻿using BancoDeDadosAPI.Interfaces;
 using BancoDeDadosAPI.Services;
 using Microsoft.OpenApi.Models;
-using Neo4j.Driver;
 
 namespace BancoDeDadosAPI
 {
@@ -16,13 +15,11 @@ namespace BancoDeDadosAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add services for Cassandra and Neo4j
             services.AddSingleton<ICassandraService, CassandraService>();
             services.AddSingleton<INeo4jService, Neo4jService>();
 
             services.AddControllers();
 
-            // Add Swagger services
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });

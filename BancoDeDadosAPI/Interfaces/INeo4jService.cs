@@ -5,10 +5,10 @@ namespace BancoDeDadosAPI.Interfaces
 {
     public interface INeo4jService
     {
-        public Task<IResultCursor> ListAsync();
-        public Task<Neo4jModel> GetByIdAsync(string id);
-        public Task PostAsync(Neo4jModel data);
-        public Task UpdateAsync(Neo4jModel data);
-        public Task DeleteAsync(string id);
+        public Task ListAsync();
+        public Task GetByIdAsync(int nodeId);
+        public Task CreateAsync(DataModel data);
+        public Task UpdateAsync(DataModel data);
+        public Task DeleteAsync(int nodeId);
     }
 }
