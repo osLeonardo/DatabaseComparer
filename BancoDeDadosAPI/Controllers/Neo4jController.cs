@@ -1,5 +1,6 @@
 ﻿using BancoDeDadosAPI.Interfaces;
 using BancoDeDadosAPI.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Neo4j.Driver;
 
@@ -20,6 +21,7 @@ namespace BancoDeDadosAPI.Controllers
         public async Task<ActionResult<List<DataModel>>> List()
         {
             var res = await _neo4jService.ListAsync();
+
             List<DataModel> resultList = res.ToListAsync().Result.Select(row => new DataModel()
             {
                 Id = row.As<INode>().Properties["Id"].As<int>(),
@@ -33,27 +35,35 @@ namespace BancoDeDadosAPI.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult GetById([FromRoute] string id)
+        public async Task<ActionResult<DataModel>> GetById([FromRoute] string id)
         {
-            return Ok(_neo4jService.GetByIdAsync(id));
+            var result = await _neo4jService.GetByIdAsync(id);
+
+            return Ok(result);
         }
 
         [HttpPost]
-        public ActionResult Post(Neo4jModel data)
+        public async Task<ActionResult<DataModel>> Create([FromBody] DataModel data)
         {
-            return Ok(_neo4jService.PostAsync(data));
+            await _neo4jService.CreateAsync(data);
+
+            return Ok(data);
         }
 
         [HttpPut]
-        public ActionResult Put(Neo4jModel data)
+        public async Task<ActionResult<DataModel>> Update([FromBody] DataModel data)
         {
-            return Ok(_neo4jService.UpdateAsync(data));
+            await _neo4jService.UpdateAsync(data);
+
+            return Ok(data);
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(string id)
+        public async Task<ActionResult<DataModel>> Delete([FromRoute] int id)
         {
-            return Ok(_neo4jService.DeleteAsync(id));
+            await _neo4jService.DeleteAsync(id);
+
+            return Ok();
         }
     }
 }
