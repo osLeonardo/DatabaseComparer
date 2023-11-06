@@ -20,13 +20,35 @@ namespace BancoDeDadosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<List<DataModel>>> List()
         {
-            return Ok(_neo4jService.ListAsync());
+            var dataModels = await _neo4jService.ListAsync();
+            var dataModelList = new List<DataModel>();
+
+            foreach (var dataModel in dataModels)
+            {
+                dataModelList.Add(new DataModel
+                {
+                    Id = dataModel.Id,
+                    Text = dataModel.Text,
+                    Number = dataModel.Number,
+                    Decimal = dataModel.Decimal,
+                    Date = dataModel.Date
+                });
+            }
+
+        return Ok(dataModelList);
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<DataModel>> GetById([FromRoute] int id)
         {
-            return Ok(_neo4jService.GetByIdAsync(id));
+            var dataModel = await _neo4jService.GetByIdAsync(id);
+
+            if (dataModel == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(dataModel);
         }
 
         [HttpPost]
