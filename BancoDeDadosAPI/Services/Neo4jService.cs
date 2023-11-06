@@ -7,144 +7,73 @@ namespace BancoDeDadosAPI.Services
     public class Neo4jService : INeo4jService
     {
         private readonly IDriver _driver;
+        private readonly IAsyncSession _session;
+        private readonly string _queryGet = "MATCH (n) RETURN n";
+        private readonly string _queryGetById = "MATCH (n) WHERE n.Id = $nodeId RETURN n";
+        private readonly string _queryCreate = @"CREATE ({ Id: $id, Text: $text, Number: $num, Decimal: $dec, Date: $date })";
+        private readonly string _queryUpdate = @"MATCH (n) WHERE n.Id = $id SET n.Text = $text, n.Number = $num, n.Decimal = $dec, n.Date = $date";
+        private readonly string _queryDelete = @"MATCH (n) WHERE n.Id = $id DELETE n";
 
         public Neo4jService()
         {
             _driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "neoadmin"));
+            _session = _driver.AsyncSession();
         }
 
-        public async Task<List<DataModel>> ListAsync()
+        public Task<List<IRecord>> ListAsync()
         {
-            using (var session = _driver.AsyncSession())
+            return _session.ExecuteReadAsync(async tx =>
             {
-                var query = "MATCH (n) RETURN n";
-
-                var result = await session.ReadTransactionAsync(async tx =>
-                {
-                    var cursor = await tx.RunAsync(query);
-                    return await cursor.ToListAsync();
-                });
-
-                var dataList = new List<DataModel>();
-
-                foreach (var record in result)
-                {
-                    var node = record["n"].As<INode>();
-                    var dataModel = new DataModel
-                    {
-                        Id = node["Id"].As<int>(),
-                        Text = node["Text"].As<string>(),
-                        Number = node["Number"].As<int>(),
-                        Decimal = node["Decimal"].As<float>(),
-                        Date = node["Date"].As<ZonedDateTime>().ToDateTimeOffset().DateTime
-                    };
-
-                    dataList.Add(dataModel);
-                }
-
-                return dataList;
-            }
+                var cursor = await tx.RunAsync(_queryGet);
+                return await cursor.ToListAsync();
+            });
         }
 
-        public async Task<DataModel> GetByIdAsync(int nodeId)
+        public Task<IRecord> GetByIdAsync(int nodeId)
         {
-            using (var session = _driver.AsyncSession())
+            return _session.ExecuteReadAsync(async tx =>
             {
-                var query = "MATCH (n) WHERE n.Id = $nodeId RETURN n";
-                var parameters = new { nodeId };
-
-                var result = await session.ReadTransactionAsync(async tx =>
-                {
-                    var cursor = await tx.RunAsync(query, parameters);
-                    return await cursor.SingleAsync();
-                });
-
-                if (result == null) { return null; }
-
-                var node = result["n"].As<INode>();
-                var dataModel = new DataModel
-                {
-                    Id = node["Id"].As<int>(),
-                    Text = node["Text"].As<string>(),
-                    Number = node["Number"].As<int>(),
-                    Decimal = node["Decimal"].As<float>(),
-                    Date = node["Date"].As<ZonedDateTime>().ToDateTimeOffset().DateTime
-                };
-
-                return dataModel;
-            }
+                var cursor = await tx.RunAsync(_queryGetById, new { nodeId });
+                return await cursor.SingleAsync();
+            });
         }
 
-        public async Task CreateAsync(DataModel data)
+        public Task CreateAsync(DataModel data)
         {
-            using (var session = _driver.AsyncSession())
+            return _session.ExecuteWriteAsync(async tx =>
             {
-                var checkQuery = "MATCH (n) WHERE n.Id = $id RETURN n";
-                var checkParameters = new { id = data.Id };
-
-                var checkResult = await session.ReadTransactionAsync(async tx =>
-                {
-                    var checkCursor = await tx.RunAsync(checkQuery, checkParameters);
-                    return await checkCursor.ToListAsync();
-                });
-
-                if (checkResult.Count > 0) { throw new Exception("A node with the same ID already exists."); }
-
-                var query = @"CREATE ({ Id: $id, Text: $text, Number: $num, Decimal: $dec, Date: datetime($date) })";
-                var parameters = new
+                await tx.RunAsync(_queryCreate, new
                 {
                     id = data.Id,
                     text = data.Text,
                     num = data.Number,
                     dec = data.Decimal,
-                    date = data.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                };
-
-                await session.WriteTransactionAsync(async tx =>
-                {
-                    await tx.RunAsync(query, parameters);
+                    date = data.Date
                 });
-            }
+            });
         }
 
-        public async Task UpdateAsync(DataModel data)
+        public Task UpdateAsync(DataModel data)
         {
-            using (var session = _driver.AsyncSession())
+            return _session.ExecuteWriteAsync(async tx =>
             {
-                var query = @"MATCH (n)
-                              WHERE n.Id = $id
-                                SET n.Text = $text, n.Number = $num, n.Decimal = $dec, n.Date = datetime($date)";
-                var parameters = new
+                await tx.RunAsync(_queryUpdate, new
                 {
                     id = data.Id,
                     text = data.Text,
                     num = data.Number,
                     dec = data.Decimal,
-                    date = data.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                };
-
-                await session.WriteTransactionAsync(async tx =>
-                {
-                    await tx.RunAsync(query, parameters);
+                    date = data.Date
                 });
-            }
+            });
         }
 
-        public async Task DeleteAsync(int nodeId)
+        public  Task DeleteAsync(int nodeId)
         {
-            using (var session = _driver.AsyncSession())
+            return _session.ExecuteWriteAsync(async tx =>
             {
-                var query = @"MATCH (n)
-                              WHERE n.Id = $id
-                             DELETE n";
-
-                var parameters = new { id = nodeId };
-
-                await session.WriteTransactionAsync(async tx =>
-                {
-                    await tx.RunAsync(query, parameters);
-                });
-            }
+                await tx.RunAsync(_queryDelete, new { id = nodeId });
+            });
         }
     }
 }
