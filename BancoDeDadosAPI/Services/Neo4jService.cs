@@ -79,6 +79,17 @@ namespace BancoDeDadosAPI.Services
         {
             using (var session = _driver.AsyncSession())
             {
+                var checkQuery = "MATCH (n) WHERE n.Id = $id RETURN n";
+                var checkParameters = new { id = data.Id };
+
+                var checkResult = await session.ReadTransactionAsync(async tx =>
+                {
+                    var checkCursor = await tx.RunAsync(checkQuery, checkParameters);
+                    return await checkCursor.ToListAsync();
+                });
+
+                if (checkResult.Count > 0) { throw new Exception("A node with the same ID already exists."); }
+
                 var query = @"CREATE ({ Id: $id, Text: $text, Number: $num, Decimal: $dec, Date: datetime($date) })";
                 var parameters = new
                 {
