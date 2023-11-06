@@ -20,33 +20,32 @@ namespace BancoDeDadosAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<List<DataModel>>> List()
         {
-            var dataModels = await _neo4jService.ListAsync();
-            var dataModelList = new List<DataModel>();
-
-            foreach (var dataModel in dataModels)
-            {
-                dataModelList.Add(new DataModel
+            var nodes = await _neo4jService.ListAsync();
+            List<DataModel> dataModelList = nodes.Select(node =>
+                new DataModel()
                 {
-                    Id = dataModel.Id,
-                    Text = dataModel.Text,
-                    Number = dataModel.Number,
-                    Decimal = dataModel.Decimal,
-                    Date = dataModel.Date
-                });
-            }
+                    Id = node["n"].As<INode>()["Id"].As<int>(),
+                    Text = node["n"].As<INode>()["Text"].As<string>(),
+                    Number = node["n"].As<INode>()["Number"].As<int>(),
+                    Decimal = node["n"].As<INode>()["Decimal"].As<float>(),
+                    Date = node["n"].As<INode>()["Date"].As<LocalDateTime>().ToDateTime()
+                }).ToList();
 
-        return Ok(dataModelList);
+            return Ok(dataModelList);
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<DataModel>> GetById([FromRoute] int id)
         {
-            var dataModel = await _neo4jService.GetByIdAsync(id);
-
-            if (dataModel == null)
-            {
-                return NotFound();
-            }
+            var node = await _neo4jService.GetByIdAsync(id);
+            DataModel dataModel = new DataModel()
+                {
+                    Id = node["n"].As<INode>()["Id"].As<int>(),
+                    Text = node["n"].As<INode>()["Text"].As<string>(),
+                    Number = node["n"].As<INode>()["Number"].As<int>(),
+                    Decimal = node["n"].As<INode>()["Decimal"].As<float>(),
+                    Date = node["n"].As<INode>()["Date"].As<LocalDateTime>().ToDateTime()
+            };
 
             return Ok(dataModel);
         }

@@ -21,10 +21,6 @@ namespace BancoDeDadosAPI.Controllers
         public async Task<ActionResult<List<DataModel>>> List()
         {
             var rows = await _cassandraService.ListAsync();
-            if(rows == null)
-            {
-                return NotFound();
-            }
 
             List<DataModel> resultList = rows.Select(row => new DataModel()
             {
@@ -42,12 +38,8 @@ namespace BancoDeDadosAPI.Controllers
         public async Task<ActionResult<DataModel>> GetById([FromRoute] int id)
         {
             var rows = await _cassandraService.GetByIdAsync(id);
-            if (rows == null)
-            {
-                return NotFound();
-            }
 
-             var row = rows.SingleOrDefault();
+            var row = rows.SingleOrDefault();
 
             DataModel result = new DataModel()
             {
@@ -64,12 +56,6 @@ namespace BancoDeDadosAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<DataModel>> Create([FromBody] DataModel data)
         {
-            
-            if (data == null || string.IsNullOrEmpty(data.Text))
-            {
-                return BadRequest();
-            }
-
             await _cassandraService.PostAsync(data);
 
             return Ok(data);
@@ -78,12 +64,6 @@ namespace BancoDeDadosAPI.Controllers
         [HttpPut]
         public async Task<ActionResult<DataModel>> Update([FromBody] DataModel data)
         {
-
-            if (data == null || string.IsNullOrEmpty(data.Text))
-            {
-                return BadRequest();
-            }
-
             await _cassandraService.UpdateAsync(data);
 
             return Ok(data);
