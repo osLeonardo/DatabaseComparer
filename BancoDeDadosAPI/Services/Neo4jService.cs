@@ -7,7 +7,6 @@ namespace BancoDeDadosAPI.Services
     public class Neo4jService : INeo4jService
     {
         private readonly IDriver _driver;
-        private readonly IAsyncSession _session;
         private readonly string _queryGet = "MATCH (n) RETURN n";
         private readonly string _queryGetById = "MATCH (n) WHERE n.Id = $nodeId RETURN n";
         private readonly string _queryCreate = @"CREATE ({ Id: $id, Text: $text, Number: $num, Decimal: $dec, Date: $date })";
@@ -16,13 +15,13 @@ namespace BancoDeDadosAPI.Services
 
         public Neo4jService()
         {
-            _driver = GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "neoadmin"));
-            _session = _driver.AsyncSession();
+            _driver = GraphDatabase.Driver("neo4j://localhost:7687", AuthTokens.Basic("neo4j", "neoadmin"), o => o.WithConnectionTimeout(TimeSpan.FromSeconds(15)).WithMaxConnectionPoolSize(1200));
         }
 
-        public Task<List<IRecord>> ListAsync()
+        public async Task<List<IRecord>> ListAsync()
         {
-            return _session.ExecuteReadAsync(async tx =>
+            await using IAsyncSession _session = _driver.AsyncSession();
+            return await _session.ExecuteReadAsync(async tx =>
             {
                 var cursor = await tx.RunAsync(_queryGet);
                 return await cursor.ToListAsync();
@@ -31,6 +30,7 @@ namespace BancoDeDadosAPI.Services
 
         public Task<IRecord> GetByIdAsync(int nodeId)
         {
+            using IAsyncSession _session = _driver.AsyncSession();
             return _session.ExecuteReadAsync(async tx =>
             {
                 var cursor = await tx.RunAsync(_queryGetById, new { nodeId });
@@ -38,11 +38,12 @@ namespace BancoDeDadosAPI.Services
             });
         }
 
-        public Task CreateAsync(DataModel data)
+        public async Task<IResultCursor> CreateAsync(DataModel data)
         {
-            return _session.ExecuteWriteAsync(async tx =>
+            await using IAsyncSession _session = _driver.AsyncSession();
+            return await _session.ExecuteWriteAsync(async tx =>
             {
-                await tx.RunAsync(_queryCreate, new
+                return await tx.RunAsync(_queryCreate, new
                 {
                     id = data.Id,
                     text = data.Text,
@@ -53,11 +54,12 @@ namespace BancoDeDadosAPI.Services
             });
         }
 
-        public Task UpdateAsync(DataModel data)
+        public async Task<IResultCursor> UpdateAsync(DataModel data)
         {
-            return _session.ExecuteWriteAsync(async tx =>
+            await using IAsyncSession _session = _driver.AsyncSession();
+            return await _session.ExecuteWriteAsync(async tx =>
             {
-                await tx.RunAsync(_queryUpdate, new
+                return await tx.RunAsync(_queryUpdate, new
                 {
                     id = data.Id,
                     text = data.Text,
@@ -68,11 +70,12 @@ namespace BancoDeDadosAPI.Services
             });
         }
 
-        public  Task DeleteAsync(int nodeId)
+        public async Task<IResultCursor> DeleteAsync(int nodeId)
         {
-            return _session.ExecuteWriteAsync(async tx =>
+            await using IAsyncSession _session = _driver.AsyncSession();
+            return await _session.ExecuteWriteAsync(async tx =>
             {
-                await tx.RunAsync(_queryDelete, new { id = nodeId });
+                return await tx.RunAsync(_queryDelete, new { id = nodeId });
             });
         }
     }
