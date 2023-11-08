@@ -7,8 +7,8 @@ namespace BancoDeDadosAPI.Interfaces
     {
         public Task<List<IRecord>> ListAsync();
         public Task <IRecord> GetByIdAsync(int nodeId);
-        public Task CreateAsync(DataModel data);
-        public Task UpdateAsync(DataModel data);
-        public Task DeleteAsync(int nodeId);
+        public Task<IResultCursor> CreateAsync(DataModel data);
+        public Task<IResultCursor> UpdateAsync(DataModel data);
+        public Task<IResultCursor> DeleteAsync(int nodeId);
     }
 }
