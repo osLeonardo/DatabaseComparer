@@ -12,7 +12,7 @@ namespace BancoDeDadosAPI.Services
         private readonly string keySpace = "test_api";
         private readonly string table = "teste";
 
-        //private SimpleStatement _psGet;
+        private SimpleStatement _psGet;
         private PreparedStatement _psGetById;
         private PreparedStatement _psCreate;
         private PreparedStatement _psUpdate;
@@ -23,7 +23,7 @@ namespace BancoDeDadosAPI.Services
                 .AddContactPoint("127.0.0.1")
                 .Build();
             _session = cluster.Connect(keySpace);
-            //_psGet = new SimpleStatement($"SELECT * FROM {table};");
+            _psGet = new SimpleStatement($"SELECT * FROM {table};");
             _psGetById = _session.Prepare($"SELECT * FROM {table} WHERE id = ?;");
             _psCreate = _session.Prepare($"INSERT INTO {table} (id, texto, numero, num_decimal, data_completa) VALUES (?, ?, ?, ?, ?);");
             _psUpdate = _session.Prepare($"UPDATE {table} SET texto = ?, numero = ?, num_decimal = ?, data_completa = ? WHERE id = ? ;");
@@ -32,7 +32,7 @@ namespace BancoDeDadosAPI.Services
 
         public Task<RowSet> ListAsync()
         {
-            return _session.ExecuteAsync(new SimpleStatement($"SELECT * FROM {table};"));
+            return _session.ExecuteAsync(_psGet);
         }
 
         public Task<RowSet> GetByIdAsync(int id)
