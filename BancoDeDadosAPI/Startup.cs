@@ -40,7 +40,6 @@ namespace BancoDeDadosAPI
                 endpoints.MapControllers();
             });
 
-            // Enable Swagger UI
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
