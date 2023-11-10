@@ -10,6 +10,5 @@ namespace BancoDeDadosAPI.Interfaces
         public Task<RowSet> PostAsync(DataModel data);
         public Task<RowSet> UpdateAsync(DataModel data);
         public Task<RowSet> DeleteAsync(int id);
-
     }
 }
