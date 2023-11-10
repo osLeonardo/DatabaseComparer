@@ -4,7 +4,7 @@
 ### Prof. Marlon de Matos de Oliveira
 ## Amanda V. Soares, João Vítor F. Sonego, Leonardo O. Spilere
 
-### Diretório 'Tested':
+### Diretório 'Testes':
 Possui as configurações dos testes rodados no JMeter;
 - arquivos com prefixo CAS são referentes ao Apache Cassandra;
 - arquivos com prefixo NEO são referentes ao Neo4j;
