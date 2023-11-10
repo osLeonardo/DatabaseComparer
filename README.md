@@ -1,6 +1,6 @@
 # Teste de performance em bancos de dados NoSQL: Apache Cassandra vs. Neo4j
 
-### Curso de Ciência da Computação– Universidade do Extremo Sul Catarinense (UNESC)
+### Curso de Ciência da Computação – Universidade do Extremo Sul Catarinense (UNESC)
 ### Prof. Marlon de Matos de Oliveira
 ## Amanda V. Soares, João Vítor F. Sonego, Leonardo O. Spilere
 
